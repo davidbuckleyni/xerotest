@@ -13,6 +13,12 @@ namespace reafactored.services.InterFace
         public List<Product> GetAllProducts();
         List<Product> GetProductsByName(string name);
 
+        public List<Product> GetProductWithOptions(Guid id);
+
+        public ProductOption GetProductOptions(Guid id);
+        public UpdateResult Update(Product product);
+
+        public UpdateResult Save(Product product);
 
     }
 }

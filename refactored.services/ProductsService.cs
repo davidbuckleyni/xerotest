@@ -12,19 +12,29 @@ using refactored.models;
 using refactored.services.InterFace;
 using Microsoft.AspNetCore.Http.Features;
 using refactor_this.Models;
+using log4net;
+using log4net.Util;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Client;
+using System.Data.Entity;
 
 namespace reafactored.services
 {
     public class ProductsService : IProductInterface
     {
         public new List<Product> Items { get; set; }
-
-        public int MyProperty { get; set; }
+        
 
         IMyConnection _myConnection;
-        public ProductsService(IMyConnection myConnection)
+        RefactoredDBContext _dbcontext;
+
+        private static readonly ILog _logger = LogManager.GetLogger(typeof(ProductsService));
+
+        public ProductsService(IMyConnection myConnection,RefactoredDBContext dBContext)
         {
             _myConnection = myConnection;
+            _dbcontext= dBContext;
         }
 
         
@@ -34,28 +44,10 @@ namespace reafactored.services
         /// <returns>
         ///  Retruns a Product Options even if multiple
         /// </returns>
-        public List<ProductOption> GetProductOptions(int id)
+        public ProductOption GetProductOptions(Guid id)
         {
-            List<ProductOption> productOptions = new List<ProductOption>();
-             var conn = Helpers.NewConnection(_myConnection);
-            var cmd = new SqlCommand($"select * from productoption where id = '{id}'", conn);
-            conn.Open();
-
-            var rdr = cmd.ExecuteReader();
-            if (!rdr.Read())
-                return null;
-            while (rdr.Read())
-            {
-                ProductOption productOption = new ProductOption
-                {
-                    Id = Guid.Parse(rdr["Id"].ToString()),
-                    Name = rdr["Name"].ToString(),
-                    Description = rdr["Description"] == DBNull.Value ? null : rdr["Description"].ToString(),
-                };
-                productOptions.Add(productOption);
-            }
-            return productOptions;
-        }
+            return _dbcontext.ProductOption.Where(w => w.Id == id).FirstOrDefault();
+         }
 
         /// <summary>Gets the product by identifier.</summary>
         /// <param name="id">The identifier.</param>
@@ -64,9 +56,7 @@ namespace reafactored.services
         /// </returns>
         public Product GetProductById(Guid id)
         {
-            var conn = Helpers.NewConnection(_myConnection);
-
-            //make sure we only get an integer back
+               //make sure we only get an integer back
             if (Guid.TryParse(id.ToString(), out Guid guidValue))
             {
                 id = guidValue;
@@ -75,23 +65,9 @@ namespace reafactored.services
             {
                 id = Guid.Empty;
             }
-
-            var cmd = new SqlCommand($"select * from product where id = '{id}'", conn);
-            conn.Open();
-
-            var rdr = cmd.ExecuteReader();
-            if (!rdr.Read())
-                return null;
-            Product product = new Product
-            {
-
-                Id = Guid.Parse(rdr["Id"].ToString()),
-                Name = rdr["Name"].ToString(),
-                Description = (DBNull.Value == rdr["Description"]) ? null : rdr["Description"].ToString(),
-                Price = decimal.Parse(rdr["Price"].ToString()),
-                DeliveryPrice = decimal.Parse(rdr["DeliveryPrice"].ToString())
-            };
-
+            var product = _dbcontext.Product.Where(w=>w.Id== id).FirstOrDefault();
+            
+            
             return product;
         }
 
@@ -102,17 +78,24 @@ namespace reafactored.services
         /// </returns>
         public List<Product> GetAllProducts()
         {
-            Items = new List<Product>();
-            var conn = Helpers.NewConnection(_myConnection);
-            var cmd = new SqlCommand($"select id from product", conn);
-            conn.Open();
+            string methodEnter = "Enterting GetAllProducts";
+            _logger.Info(methodEnter);
 
-            var rdr = cmd.ExecuteReader();
-            while (rdr.Read())
+            try
             {
-                var id = Guid.Parse(rdr["id"].ToString());
-                Items.Add(GetProductById(id));
+                 Items = _dbcontext.Product.ToList();
+                string methodExit = "Exiting GetAllProducts";
+                _logger.Info(methodEnter);
+
             }
+            catch (Exception ex)
+            {                
+                string method = "GetAllProducts";
+                string methodError = $"An Erorr has occoured in the {nameof(ProductsService)} class in method {method} ";
+                _logger.Error(methodError,ex);
+
+            }
+
             return Items;
         }
 
@@ -120,40 +103,125 @@ namespace reafactored.services
         /// <summary>Gets the name of the products by.</summary>
         /// <param name="name">The name.</param>
         /// <returns>
-        ///   <br />
+        ///  Returns a list of products by name
         /// </returns>
         public List<Product> GetProductsByName(string name)
         {
-            var conn = Helpers.NewConnection(_myConnection);
-
-            //make sure we only get an integer back
             List<Product> products = new List<Product>();
-            
-            var cmd = new SqlCommand($"select * from product where name '%' + @paramValue + '%'\"", conn);
+            _logger.Info($"Entering  GetProductsByName Method in  the {nameof(ProductsService)} class");
 
-            // only use parameters here so that sql injection cannot happen
-            cmd.Parameters.AddWithValue("@paramValue", name);
-
-            conn.Open();
-
-            var rdr = cmd.ExecuteReader();
-            if (!rdr.Read())
-                return null;
-
-            while (rdr.Read())
+            try
             {
-                Product product = new Product
-                {
-                    Id = Guid.Parse(rdr["Id"].ToString()),
-                    Name = rdr["Name"].ToString(),
-                    Description = rdr["Description"] == DBNull.Value ? null : rdr["Description"].ToString(),
-                    Price = rdr["Price"] == DBNull.Value ? 0m : decimal.Parse(rdr["Price"].ToString()),
-                    DeliveryPrice = rdr["DeliveryPrice"] == DBNull.Value ? 0m : decimal.Parse(rdr["DeliveryPrice"].ToString()),
+                products = _dbcontext.Product.Where(w => EF.Functions.Like(w.Name, "%" + name + "%")).ToList();
+            }catch (Exception ex)
+            {
+                _logger.Error($"Error in GetProductsByName Method in  the {nameof(ProductsService)} class",ex);
 
-                };
-                products.Add(product);
             }
             return products;
+
         }
-    }
+
+        /// <summary>
+        /// Saves the specified product.
+        /// </summary>
+        /// <param name="product">The product.</param>
+        public UpdateResult Save(Product product)
+        {
+            try
+            {
+                _logger.Info($"Entering  Save Method in  the {nameof(ProductsService)} class");
+
+                _dbcontext.Add(product);
+                _dbcontext.SaveChanges();
+                return new UpdateResult { Success = true ,Id=product.Id};
+
+                _logger.Info($"Exiting Save Method in  the {nameof(ProductsService)} class");
+            }
+            catch (Exception ex)
+            {
+
+                _logger.Error($"Error Occoured Save Method in  the {nameof(ProductsService)} class" ,ex);
+                return new UpdateResult { Success = false, ErrorMessage = ex.StackTrace.ToString() };
+
+            }
+        }
+
+        /// <summary>
+        /// Updates the specified identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="product">The product.</param>
+        public UpdateResult Update(Product product)
+        {
+
+            try
+            {
+                _logger.Info($"Entering Update Method in  the {nameof(ProductsService)} class");
+
+
+                var existing = _dbcontext.Product.Where(w => w.Id == product.Id).FirstOrDefault();
+                if (product != null)
+                {
+                    _dbcontext.Entry(existing).CurrentValues.SetValues(product);
+                    _dbcontext.SaveChanges();
+                    return new UpdateResult { Success = true, Id = product.Id };
+                }
+                else
+                {
+
+                    _dbcontext.SaveChanges(true);
+                    return new UpdateResult { Success = true, Id = product.Id };
+                }
+                _logger.Info($"Exiting Update Method in  the {nameof(ProductsService)} class");
+            }
+            catch (Exception ex)
+            {
+                string method = "Update Product";
+                string methodError = $"An Erorr has occoured in the {nameof(ProductsService)} class in method {method} ";
+                _logger.Error(methodError, ex);
+                return new UpdateResult { Success = false, ErrorMessage = ex.InnerException.ToString() };
+
+
+            }
+        }
+
+        /// <summary>
+        /// Gets the product with options.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        public List<Product> GetProductWithOptions(Guid id)
+            {
+                var productsWithOptions = _dbcontext.Product
+                    .Join(
+                    _dbcontext.ProductOption,
+                    product => product.Id, // the primary key field in the Product table
+                    option => option.ProductId, // the field to join with in the ProductOption table
+                    (product, option) => new
+                    {
+                        Product = product,
+                        Option = option
+                    }
+                )
+                .GroupBy(x => x.Product) // Group by product to create a collection of options for each product
+                .ToList()
+                .Select(group => new Product
+                {
+                    Id = group.Key.Id,
+                    Name = group.Key.Name,
+                    Description = group.Key.Description,
+                    DeliveryPrice = group.Key.DeliveryPrice,
+                    Price = group.Key.Price,
+
+                    // Other product properties you want to include
+                    ProductOptions = group.Select(x => x.Option).ToList()
+                })
+            .ToList();
+
+            return productsWithOptions;
+
+                }
+        }
+    
 }
