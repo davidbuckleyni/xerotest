@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace refactored.models
 {
-
     public class ProductOption
     {
+
         public Guid Id { get; set; }
 
         public Guid ProductId { get; set; }
@@ -21,5 +21,18 @@ namespace refactored.models
         [JsonIgnore]
         public bool IsNew { get; }
 
+        public ProductOption()
+        {
+            Id = Guid.NewGuid();
+            IsNew = true;
+        }
+
+        public ProductOption(Guid id)
+        {
+
+
+        }
+
     }
-    }
+
+}

@@ -20,7 +20,8 @@ namespace refactored.models
 
             public decimal DeliveryPrice { get; set; }
 
-            [JsonIgnore]
+            public List<ProductOption> ProductOptions { get; set; }
+        [JsonIgnore]
             public bool IsNew { get; }
 
             public Product()

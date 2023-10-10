@@ -11,7 +11,7 @@ namespace reafactored.services.InterFace
     {
         public Product GetProductById(Guid id);
         public List<Product> GetAllProducts();
-        public Product GetProductByName(string name);
+        List<Product> GetProductsByName(string name);
 
 
     }

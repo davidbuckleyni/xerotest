@@ -27,17 +27,18 @@ namespace refactored.webapi.Controllers
 
 
         [HttpGet]
-        [Route("/Products/{id}")]
+        [Route("get/{id:int}")]
         public Product GetProductById(Guid id)
         {
             return _productInterface.GetProductById(id);
         }
+        
 
-        [HttpGet("/Products/{name2}")]
-        [Route("/Products/{name3}")]
-        public Product GetProductByName(string name)
+        [HttpGet]
+        [Route("get/{name}")]
+        public  List<Product> GetProductsByName(string name)
         {
-            return _productInterface.GetProductByName(name);
+            return _productInterface.GetProductsByName(name);
         }
     }
 
