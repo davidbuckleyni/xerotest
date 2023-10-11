@@ -202,6 +202,37 @@ namespace reafactored.services
             }
         }
 
+        public List<Product> GetAllProductsWithOptions()
+        {
+            var productsWithOptions = _dbcontext.Product
+                            .Join(
+                            _dbcontext.ProductOption,
+                            product => product.Id, // the primary key field in the Product table
+                            option => option.ProductId, // the field to join with in the ProductOption table
+                            (product, option) => new
+                            {
+                                Product = product,
+                                Option = option
+                            }
+                        )                        
+                        .GroupBy(x => x.Product) // Group by product to create a collection of options for each product
+                        .ToList()
+                        .Select(group => new Product
+                        {
+                            Id = group.Key.Id,
+                            Name = group.Key.Name,
+                            Description = group.Key.Description,
+                            DeliveryPrice = group.Key.DeliveryPrice,
+                            Price = group.Key.Price,
+
+                            // Other product properties you want to include
+                            ProductOptions = group.Select(x => x.Option).ToList()
+                        })
+                    .ToList();
+            return productsWithOptions;
+
+        }
+
         public List<Product> GetProductOptionsByProductId(Guid id)
         {
             var productsWithOptions = _dbcontext.Product

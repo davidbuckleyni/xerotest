@@ -12,6 +12,8 @@ namespace reafactored.services.InterFace
         public Product GetProductById(Guid id);
         public List<Product> GetAllProducts();
         List<Product> GetProductsByName(string name);
+        public List<Product> GetAllProductsWithOptions();
+
         public List<Product> GetProductOptionsById(Guid id);
         public List<Product> GetProductOptionsByProductId(Guid id);
         public UpdateResult Update(Product product);

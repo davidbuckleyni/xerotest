@@ -23,6 +23,11 @@ namespace refactored.webapi.Controllers
             _productInterface = productInterface;
         }
 
+        [HttpGet("GetAllProductsWithOptions")]
+        public List<Product> GetAllProductsWithOptions()
+        {
+            return _productInterface.GetAllProductsWithOptions();
+        }
         [HttpGet(("GetProductWithOptions"))]  
         public IActionResult GetProductOptionsById(Guid id)
         {
@@ -169,6 +174,9 @@ namespace refactored.webapi.Controllers
         {
             return _productInterface.GetProductsByName(name);
         }
+
+        
+      
     }
 
 }
