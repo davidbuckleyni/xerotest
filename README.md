@@ -1,83 +1,28 @@
-The attached project is a poorly written products API.
+The attached project is a modern created web api project in .net 7.
 
-Your job, should you choose to accept it, is to make changes to this project to make it better. Simple. There are no rules, changes are not limited to pure refactors.
+The project using the standard webapi template to create a fully restfull swagger style web api that meets the needs of the requirments.
 
-There is no time limit (we all work at different speed!), but as a guideline, we recommend spending between 2-4 hours on the exercise. 
+Code that previouslly used sql to connect to the database has been changed to work with sql express and entity framework. This helps prevents against sql injection attacks.
 
-Please consider all aspects of good software engineering (including but not limited to design, reliability, readability, extensibility, quality) and show us how you'll make it #beautiful.
+Code reuseability has been refined by including most code in the services layer and using interfaces to depenadncy inject the code to the web api layer from the services class.
 
-Once completed, send back your solution in a zip file (source code only please to keep the zip small) and include a new README describing the improvements you have made and the rationale behind those decisions. 
+Code has been well commented with xml comments throughout the project
 
-Good luck!
+I have ekpt to best practises such as PascalCase for method names and camal case for properties.
 
-## Instructions
+I have kept the models in their own seperate project as I find this helps in portable to clients such as xamrian and maui or blazor
 
-To set up the project:
+Also the new web api is also ssl based I built it using Visual Studio 2022 community. .net 7
 
-* Open project in VS.
-* Restore nuget packages and rebuild.
-* Run the project.
+The web api already is documented via the end point
 
-There should be these endpoints:
+https://localhost:44310/swagger/index.html
 
-1. `GET /products` - gets all products.
-2. `GET /products?name={name}` - finds all products matching the specified name.
-3. `GET /products/{id}` - gets the project that matches the specified ID - ID is a GUID.
-4. `POST /products` - creates a new product.
-5. `PUT /products/{id}` - updates a product.
-6. `DELETE /products/{id}` - deletes a product and its options.
-7. `GET /products/{id}/options` - finds all options for a specified product.
-8. `GET /products/{id}/options/{optionId}` - finds the specified product option for the specified product.
-9. `POST /products/{id}/options` - adds a new product option to the specified product.
-10. `PUT /products/{id}/options/{optionId}` - updates the specified product option.
-11. `DELETE /products/{id}/options/{optionId}` - deletes the specified product option.
+The one issue I did have was figuring out these routes
+GET /products/{id}/options/{optionId}
+POST /products/{id}/options` 
+PUT /products/{id}/options/{optionId}`
+DELETE /products/{id}/options/{optionId}`
 
-All models are specified in the `/Models` folder, but should conform to:
+The reason being is the way my web api is setup I could not figure out how to do the /options after the first id. But I gave it my best shot with what I have at present.
 
-**Product:**
-```
-{
-  "Id": "01234567-89ab-cdef-0123-456789abcdef",
-  "Name": "Product name",
-  "Description": "Product description",
-  "Price": 123.45,
-  "DeliveryPrice": 12.34
-}
-```
-
-**Products:**
-```
-{
-  "Items": [
-    {
-      // product
-    },
-    {
-      // product
-    }
-  ]
-}
-```
-
-**Product Option:**
-```
-{
-  "Id": "01234567-89ab-cdef-0123-456789abcdef",
-  "Name": "Product name",
-  "Description": "Product description"
-}
-```
-
-**Product Options:**
-```
-{
-  "Items": [
-    {
-      // product option
-    },
-    {
-      // product option
-    }
-  ]
-}
-```

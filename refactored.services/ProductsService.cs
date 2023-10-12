@@ -142,6 +142,7 @@ namespace reafactored.services
         /// Saves the specified product.
         /// </summary>
         /// <param name="product">The product.</param>
+        /// <retruns> update result based on success of creation of product</retruns>
         public UpdateResult CreateProduct(Product product)
         {
             try
@@ -168,6 +169,7 @@ namespace reafactored.services
         /// </summary>
         /// <param name="id">The identifier.</param>
         /// <param name="product">The product.</param>
+        /// <return>Update result based on if the product has been updated</return>
         public UpdateResult Update(Product product)
         {
 
@@ -202,6 +204,10 @@ namespace reafactored.services
             }
         }
 
+        /// <summary>
+        /// Gets all products with options.
+        /// </summary>
+        /// <returns> All products with associated options</returns>
         public List<Product> GetAllProductsWithOptions()
         {
             var productsWithOptions = _dbcontext.Product
@@ -214,7 +220,7 @@ namespace reafactored.services
                                 Product = product,
                                 Option = option
                             }
-                        )                        
+                        )
                         .GroupBy(x => x.Product) // Group by product to create a collection of options for each product
                         .ToList()
                         .Select(group => new Product
@@ -233,6 +239,11 @@ namespace reafactored.services
 
         }
 
+        /// <summary>
+        /// Gets the product options by product identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns>Returns a list of produts by id and there options</returns>
         public List<Product> GetProductOptionsByProductId(Guid id)
         {
             var productsWithOptions = _dbcontext.Product
@@ -269,7 +280,7 @@ namespace reafactored.services
         /// Gets the product with options.
         /// </summary>
         /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <returns>A List of product options by id</returns>
         public List<Product> GetProductOptionsById(Guid id)
         {
             var productsWithOptions = _dbcontext.Product
@@ -312,13 +323,14 @@ namespace reafactored.services
         {
             var options = _dbcontext.ProductOption.Where(w => w.Id == id).FirstOrDefault();
             try
-              {
+            {
                 if (options != null)
                 {
                     var productOption = _dbcontext.ProductOption.Remove(options);
-                }else
+                }
+                else
                 {
-                    return new UpdateResult { Success = false,ErrorMessage="Data does not exist" };
+                    return new UpdateResult { Success = false, ErrorMessage = "Data does not exist" };
                 }
                 _dbcontext.SaveChanges();
                 return new UpdateResult { Success = true, SuccessMessage = "Record Deleted", Id = id };
@@ -345,10 +357,10 @@ namespace reafactored.services
             {
                 if (product != null)
                 {
-                    var options = _dbcontext.ProductOption.Where(w=>w.Id==id).ToList();
+                    var options = _dbcontext.ProductOption.Where(w => w.Id == id).ToList();
                     _dbcontext.Product.Remove(product);
                     _dbcontext.ProductOption.RemoveRange(options);
-                }              
+                }
                 else
 
                 {

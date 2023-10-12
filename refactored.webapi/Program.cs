@@ -7,7 +7,7 @@ using refactored.dal;
 using refactored.services;
 using refactored.services.InterFace;
 using System.Configuration;
- 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -20,7 +20,7 @@ var configuration = new ConfigurationBuilder()
 .Build();
 
 string rootDirectory = AppDomain.CurrentDomain.BaseDirectory + @"App_Data";
- var connectionString = configuration.GetConnectionString("DefaultConnection").Replace("{SpecialFolder}", rootDirectory);
+var connectionString = configuration.GetConnectionString("DefaultConnection").Replace("{SpecialFolder}", rootDirectory);
 
 XmlConfigurator.ConfigureAndWatch(new FileInfo("log4net.config"));
 
@@ -41,6 +41,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseDeveloperExceptionPage();
 
 app.UseHttpsRedirection();
 
